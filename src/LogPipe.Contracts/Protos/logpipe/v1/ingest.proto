@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package logpipe.v1;
+
+option csharp_namespace = "LogPipe.Contracts.V1";
+
+// Single source of truth for the logpipe ingest pipeline.
+service LogIngest {
+  // Client-streamed batch ingest. One call = one batch.
+  rpc StreamLogs (stream LogEntry) returns (StreamAck);
+}
+
+message LogEntry {
+  string id = 1;         // client-generated id (GUID) — dedup key
+  string timestamp = 2;  // RFC 3339 UTC, e.g. 2026-10-12T18:03:22.123Z
+  string level = 3;      // Trace|Debug|Information|Warning|Error|Critical
+  string service = 4;    // emitting service name
+  string message = 5;
+  string trace_id = 6;   // W3C trace-id (32 hex chars), optional
+  string span_id = 7;    // W3C span-id (16 hex chars), optional
+  map<string, string> attributes = 8;
+}
+
+message StreamAck {
+  int32 accepted = 1;
+  int32 rejected = 2;
+  string error = 3;      // empty on success
+}
